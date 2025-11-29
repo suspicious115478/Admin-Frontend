@@ -6,7 +6,7 @@ import { useNavigate, Link } from 'react-router-dom';
 
 const auth = getAuth(app);
 // ⚠️ IMPORTANT: Set your deployed backend URL here
-const API_BASE_URL = 'https://admin-backend-service.onrender.com'; 
+const API_BASE_URL = 'https://admin-backend-sxev.onrender.com'; 
 
 export function SignupPage() {
     const [email, setEmail] = useState('');
