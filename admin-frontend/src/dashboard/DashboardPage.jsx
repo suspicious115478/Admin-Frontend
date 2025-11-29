@@ -4,7 +4,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 // ⚠️ IMPORTANT: Set your deployed backend URL here
-const API_BASE_URL = 'https://admin-backend-service.onrender.com'; 
+const API_BASE_URL = 'https://admin-backend-sxev.onrender.com'; 
 
 export function DashboardPage() {
     const { currentUser, logout } = useAuth();
@@ -89,4 +89,5 @@ const styles = {
     highlightId: { backgroundColor: '#dcfce7', padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold', color: '#10b981' },
     error: { color: '#ef4444', marginTop: '15px', border: '1px solid #fee2e2', padding: '10px', borderRadius: '4px' },
     loading: { textAlign: 'center', padding: '50px' }
+
 };
