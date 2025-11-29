@@ -1,8 +1,10 @@
 // src/auth/LoginPage.jsx
 import React, { useState } from 'react';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+// 🔥 NEW IMPORT
 import { app } from '../config';
-import { useNavigate } from 'react-router-dom';
+// 🔥 NEW IMPORT: Link for navigation
+import { useNavigate, Link } from 'react-router-dom';
 
 const auth = getAuth(app);
 
@@ -28,7 +30,7 @@ export function LoginPage() {
     return (
         <div style={styles.container}>
             <form onSubmit={handleLogin} style={styles.form}>
-                <h2 style={styles.header}>Admin Login</h2>
+                <h2 style={styles.header}>Admin Login 🔑</h2>
                 <input
                     type="email"
                     placeholder="Admin Email"
@@ -47,6 +49,11 @@ export function LoginPage() {
                 />
                 <button type="submit" style={styles.button}>Log In</button>
                 {error && <p style={styles.error}>{error}</p>}
+                
+                {/* 🔥 ADDED: Link to Sign Up Page */}
+                <p style={styles.footer}>
+                    Not an admin? <Link to="/signup" style={styles.link}>Sign Up Here</Link>
+                </p>
             </form>
         </div>
     );
@@ -58,5 +65,8 @@ const styles = {
     header: { marginBottom: '20px', textAlign: 'center', color: '#1f2937' },
     input: { marginBottom: '15px', padding: '10px', borderRadius: '4px', border: '1px solid #d1d5db', fontSize: '16px' },
     button: { padding: '10px', backgroundColor: '#4f46e5', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '16px', fontWeight: '600' },
-    error: { color: '#ef4444', marginTop: '10px', textAlign: 'center' }
+    error: { color: '#ef4444', marginTop: '10px', textAlign: 'center' },
+    // 🔥 NEW STYLES for footer link
+    footer: { marginTop: '15px', textAlign: 'center', fontSize: '0.9rem', color: '#4b5563' },
+    link: { color: '#10b981', textDecoration: 'none', fontWeight: '600' }
 };
