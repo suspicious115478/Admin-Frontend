@@ -4,6 +4,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './auth/AuthContext';
 import { PrivateRoute } from './auth/PrivateRoute';
 import { LoginPage } from './auth/LoginPage';
+// 🔥 NEW IMPORT
+import { SignupPage } from './auth/SignupPage'; 
 import { DashboardPage } from './dashboard/DashboardPage';
 
 function App() {
@@ -11,6 +13,9 @@ function App() {
         <Router>
             <AuthProvider>
                 <Routes>
+                    {/* 🔥 ADDED SIGNUP ROUTE */}
+                    <Route path="/signup" element={<SignupPage />} />
+                    
                     <Route path="/login" element={<LoginPage />} />
                     
                     {/* Protected Route */}
