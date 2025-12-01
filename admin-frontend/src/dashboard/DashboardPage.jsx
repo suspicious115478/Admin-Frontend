@@ -10,7 +10,7 @@ export function DashboardPage() {
     const { currentUser, logout } = useAuth();
     const navigate = useNavigate();
     const [adminId, setAdminId] = useState('Fetching...');
-    const [orders, setOrders] = useState([]); // State to hold the fetched orders
+    const [orders, setOrders] = useState([]); 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -44,7 +44,7 @@ export function DashboardPage() {
             }
 
             const ordersData = await ordersResponse.json();
-            setOrders(ordersData.orders); // Should be an array of { order_id, order_status }
+            setOrders(ordersData.orders); 
 
         } catch (err) {
             console.error("Data Fetch Failed:", err);
@@ -96,7 +96,7 @@ export function DashboardPage() {
                 
                 {/* --- Orders Display Section --- */}
                 <div style={{...styles.card, marginTop: '20px'}}>
-                    <h2 style={styles.cardTitle}>Assigned Orders (from Supabase)</h2>
+                    <h2 style={styles.cardTitle}>❌ Cancelled Orders (from Supabase)</h2>
                     {loading && <p>Loading orders...</p>}
                     {!loading && !error && (
                         orders.length > 0 ? (
@@ -104,6 +104,9 @@ export function DashboardPage() {
                                 <thead>
                                     <tr>
                                         <th style={styles.th}>Order ID</th>
+                                        <th style={styles.th}>Category</th>
+                                        <th style={styles.th}>Request</th>
+                                        <th style={styles.th}>Address</th>
                                         <th style={styles.th}>Status</th>
                                     </tr>
                                 </thead>
@@ -111,13 +114,16 @@ export function DashboardPage() {
                                     {orders.map((order) => (
                                         <tr key={order.order_id}>
                                             <td style={styles.td}>{order.order_id}</td>
+                                            <td style={styles.td}>{order.category}</td>
+                                            <td style={styles.td}>{order.order_request}</td>
+                                            <td style={styles.td}>{order.request_address}</td>
                                             <td style={styles.tdStatus(order.order_status)}>{order.order_status}</td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
                         ) : (
-                            <p>No orders currently assigned to Admin ID: **{adminId}**</p>
+                            <p>No **Cancelled** orders found for Admin ID: **{adminId}**</p>
                         )
                     )}
                 </div>
@@ -131,7 +137,7 @@ const styles = {
     header: { backgroundColor: '#1f2937', color: 'white', padding: '20px 30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
     title: { fontSize: '1.5rem', margin: 0 },
     logoutButton: { padding: '8px 15px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' },
-    content: { padding: '30px', maxWidth: '800px', margin: '0 auto', width: '100%' },
+    content: { padding: '30px', maxWidth: '1000px', margin: '0 auto', width: '100%' }, // Increased max-width
     card: { backgroundColor: 'white', padding: '30px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' },
     cardTitle: { borderBottom: '2px solid #e5e7eb', paddingBottom: '10px', marginBottom: '20px', color: '#1f2937' },
     detailLine: { marginBottom: '10px', fontSize: '1.1rem', color: '#4b5563' },
@@ -142,22 +148,32 @@ const styles = {
     
     // Table Styles
     table: { width: '100%', borderCollapse: 'collapse', marginTop: '15px' },
-    th: { borderBottom: '2px solid #e5e7eb', padding: '12px', textAlign: 'left', backgroundColor: '#f9fafb', color: '#374151' },
-    td: { borderBottom: '1px solid #e5e7eb', padding: '12px', textAlign: 'left', fontFamily: 'monospace' },
+    th: { borderBottom: '2px solid #e5e7eb', padding: '12px', textAlign: 'left', backgroundColor: '#f9fafb', color: '#374151', fontSize: '0.9rem' },
+    td: { borderBottom: '1px solid #e5e7eb', padding: '12px', textAlign: 'left', fontSize: '0.9rem' },
     
     // Dynamic Status Style
     tdStatus: (status) => {
         let color = '#374151'; // Default
-        if (status === 'Dispatched') color = '#2563eb'; // Blue
-        if (status === 'Delivered') color = '#10b981'; // Green
-        if (status === 'Pending') color = '#f59e0b'; // Yellow/Amber
+        let bgColor = 'transparent';
+        
+        if (status === 'Cancelled') {
+            color = '#ef4444'; // Red
+            bgColor = '#fee2e2';
+        } 
+        
+        // Add styles for other potential statuses if you need them:
+        // if (status === 'Dispatched') color = '#2563eb'; 
+        // if (status === 'Delivered') color = '#10b981'; 
+        // if (status === 'Pending') color = '#f59e0b'; 
         
         return { 
             borderBottom: '1px solid #e5e7eb', 
             padding: '12px', 
             textAlign: 'left', 
-            fontWeight: '600', 
-            color: color 
+            fontWeight: '700', 
+            color: color,
+            backgroundColor: bgColor,
+            borderRadius: '4px'
         };
     }
 };
