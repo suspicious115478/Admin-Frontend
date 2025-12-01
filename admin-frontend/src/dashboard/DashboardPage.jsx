@@ -10,31 +10,54 @@ export function DashboardPage() {
     const { currentUser, logout } = useAuth();
     const navigate = useNavigate();
     const [adminId, setAdminId] = useState('Fetching...');
+    const [orders, setOrders] = useState([]); // State to hold the fetched orders
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    // Function to handle the two-step data fetching
+    const fetchAdminData = async (firebaseUid) => {
+        setLoading(true);
+        setError(null);
+        let currentAdminId = null;
+
+        try {
+            // 1. Fetch admin_id using Firebase UID
+            const idUrl = `${API_BASE_URL}/api/admin/adminid/${firebaseUid}`;
+            const idResponse = await fetch(idUrl);
+            
+            if (!idResponse.ok) {
+                const errData = await idResponse.json().catch(() => ({ message: 'Unknown ID Error' }));
+                throw new Error(`ID Fetch Error ${idResponse.status}: ${errData.message}`);
+            }
+
+            const idData = await idResponse.json();
+            currentAdminId = idData.admin_id;
+            setAdminId(currentAdminId);
+
+            // 2. Fetch orders using the retrieved admin_id
+            const ordersUrl = `${API_BASE_URL}/api/admin/orders/${currentAdminId}`;
+            const ordersResponse = await fetch(ordersUrl);
+
+            if (!ordersResponse.ok) {
+                const errData = await ordersResponse.json().catch(() => ({ message: 'Unknown Orders Error' }));
+                throw new Error(`Orders Fetch Error ${ordersResponse.status}: ${errData.message}`);
+            }
+
+            const ordersData = await ordersResponse.json();
+            setOrders(ordersData.orders); // Should be an array of { order_id, order_status }
+
+        } catch (err) {
+            console.error("Data Fetch Failed:", err);
+            setError(err.message || 'Error connecting to backend for data.');
+            setAdminId(currentAdminId || 'N/A (Error)');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         if (currentUser) {
-            const fetchAdminId = async () => {
-                const firebaseUid = currentUser.uid;
-                const url = `${API_BASE_URL}/api/admin/adminid/${firebaseUid}`;
-                
-                try {
-                    const response = await fetch(url);
-                    if (!response.ok) {
-                        const errData = await response.json().catch(() => ({ message: 'Unknown Error' }));
-                        throw new Error(`HTTP Error ${response.status}: ${errData.message}`);
-                    }
-
-                    const data = await response.json();
-                    setAdminId(data.admin_id);
-                } catch (err) {
-                    console.error("Fetch Admin ID Failed:", err);
-                    setError(err.message || 'Error connecting to backend.');
-                    setAdminId('N/A (Error)');
-                }
-            };
-
-            fetchAdminId();
+            fetchAdminData(currentUser.uid);
         }
     }, [currentUser]);
 
@@ -48,7 +71,6 @@ export function DashboardPage() {
     };
 
     if (!currentUser) {
-        // Should be caught by the PrivateRoute wrapper, but safe fallback
         return <div style={styles.loading}>Redirecting to login...</div>;
     }
 
@@ -67,9 +89,37 @@ export function DashboardPage() {
                         **Firebase User ID (UID):** <span style={styles.highlight}>{currentUser.uid}</span>
                     </p>
                     <p style={styles.detailLine}>
-                        **Fetched Admin ID:** <span style={styles.highlightId}>{adminId}</span>
+                        **Fetched Admin ID (for Supabase lookup):** <span style={styles.highlightId}>{adminId}</span>
                     </p>
                     {error && <p style={styles.error}>**Backend Error:** {error}</p>}
+                </div>
+                
+                {/* --- Orders Display Section --- */}
+                <div style={{...styles.card, marginTop: '20px'}}>
+                    <h2 style={styles.cardTitle}>Assigned Orders (from Supabase)</h2>
+                    {loading && <p>Loading orders...</p>}
+                    {!loading && !error && (
+                        orders.length > 0 ? (
+                            <table style={styles.table}>
+                                <thead>
+                                    <tr>
+                                        <th style={styles.th}>Order ID</th>
+                                        <th style={styles.th}>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {orders.map((order) => (
+                                        <tr key={order.order_id}>
+                                            <td style={styles.td}>{order.order_id}</td>
+                                            <td style={styles.tdStatus(order.order_status)}>{order.order_status}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        ) : (
+                            <p>No orders currently assigned to Admin ID: **{adminId}**</p>
+                        )
+                    )}
                 </div>
             </div>
         </div>
@@ -88,6 +138,26 @@ const styles = {
     highlight: { backgroundColor: '#eef2ff', padding: '2px 8px', borderRadius: '4px', fontFamily: 'monospace', color: '#4f46e5' },
     highlightId: { backgroundColor: '#dcfce7', padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold', color: '#10b981' },
     error: { color: '#ef4444', marginTop: '15px', border: '1px solid #fee2e2', padding: '10px', borderRadius: '4px' },
-    loading: { textAlign: 'center', padding: '50px' }
-
+    loading: { textAlign: 'center', padding: '50px' },
+    
+    // Table Styles
+    table: { width: '100%', borderCollapse: 'collapse', marginTop: '15px' },
+    th: { borderBottom: '2px solid #e5e7eb', padding: '12px', textAlign: 'left', backgroundColor: '#f9fafb', color: '#374151' },
+    td: { borderBottom: '1px solid #e5e7eb', padding: '12px', textAlign: 'left', fontFamily: 'monospace' },
+    
+    // Dynamic Status Style
+    tdStatus: (status) => {
+        let color = '#374151'; // Default
+        if (status === 'Dispatched') color = '#2563eb'; // Blue
+        if (status === 'Delivered') color = '#10b981'; // Green
+        if (status === 'Pending') color = '#f59e0b'; // Yellow/Amber
+        
+        return { 
+            borderBottom: '1px solid #e5e7eb', 
+            padding: '12px', 
+            textAlign: 'left', 
+            fontWeight: '600', 
+            color: color 
+        };
+    }
 };
